@@ -1,0 +1,15 @@
+﻿@using kiosk_server.Services
+@inherits LayoutComponentBase
+
+<MudThemeProvider IsDarkMode="@LayoutService.IsDarkMode"/>
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout Style="height:100vh" Class="d-flex">
+     <MudMainContent Class="pt-0 d-flex flex-column">
+        @Body
+    </MudMainContent>
+</MudLayout>
+    
+

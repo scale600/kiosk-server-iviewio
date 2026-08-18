@@ -1,0 +1,6 @@
+# kiosk1.iviewio.com — Kiosk Server (Blazor + MudBlazor)
+# TLS via Let's Encrypt (ACME). DNS must point to this host.
+
+kiosk1.iviewio.com {
+	reverse_proxy 127.0.0.1:5000
+}

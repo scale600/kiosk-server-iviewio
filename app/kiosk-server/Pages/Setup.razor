@@ -1,0 +1,179 @@
+@page "/setup"
+@using kiosk_server.Services
+
+<MudPaper Class="pa-4 ma-4 flex-grow-1 flex-shrink-1"  Elevation="10">
+ 
+
+    <MudDataGrid T="RedirectItem" SortMode="SortMode.None" Items="@RedirectUrlList" ReadOnly="false" EditMode="DataGridEditMode.Cell"
+                 CommittedItemChanges="@CommittedItemChanges"
+                  Bordered="true" Dense="false" Striped="true" Elevation="4">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Kiosk Urls</MudText>
+            <MudSpacer />
+            <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="@(LayoutService.IsDarkMode ? Color.Success : Color.Secondary)" Class="ml-auto" Href="/kiosk">KIOSK HOME</MudButton>
+            <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="@(LayoutService.IsDarkMode ? Color.Dark : Color.Primary)" Class="ml-2" @onclick="@HandleReboot">Reboot</MudButton>
+            <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="@(LayoutService.IsDarkMode ? Color.Dark : Color.Primary)" Class="ml-2" @onclick="@HandleShutdown">Shutdown</MudButton>
+
+
+        </ToolBarContent>
+        <Columns>
+            <PropertyColumn T="RedirectItem" TProperty="int"  Property="x => x.Id" Editable="false" HeaderStyle="width:1%" CellStyle="text-align:center;"/>
+            <PropertyColumn T="RedirectItem" TProperty="string" Property="x => x.Name" HeaderStyle="Width:20%">
+                <EditTemplate>
+                    <MudTextField T="string" Value="context.Item.Name" ValueChanged="@(async (e) => { context.Item.Name = e;await CommittedItemChanges(context.Item); })" Margin="@Margin.Dense" Style="margin-top:0" />
+                </EditTemplate>
+            </PropertyColumn>
+            <PropertyColumn T="RedirectItem" TProperty="string" Property="x => x.Url">
+                <EditTemplate>
+                    <MudTextField T="string" Value="context.Item.Url" ValueChanged="@(async (e) => { context.Item.Url = e;await CommittedItemChanges(context.Item); })" Margin="@Margin.Dense" Style="margin-top:0" />
+                </EditTemplate>
+            </PropertyColumn>
+
+            <TemplateColumn T="RedirectItem"  Editable="false" Title="Action" HeaderStyle="width:1%" CellStyle="text-align:center;">
+                <CellTemplate>
+                    @if (!string.IsNullOrEmpty(context.Item.Url))
+                    {
+                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" title="Delete" OnClick="@(async (e) => { await DeleteUrl(context.Item); })"/>
+                    }
+
+                </CellTemplate>
+            </TemplateColumn>
+
+        </Columns>
+    </MudDataGrid>
+    <MudAlert Severity="Severity.Info" Dense="true" Class="mt-2">
+        Some sites (e.g. Google) block iframe embedding, so they won't display in the Kiosk view. You can open such URLs via "Open in new tab" at the bottom of Kiosk HOME.
+    </MudAlert>
+
+    <MudCard Elevation="4">
+        <MudCardHeader Class="pb-0 mt-4">
+            <CardHeaderContent >
+                <MudText Typo="Typo.h6">Memory</MudText>
+            </CardHeaderContent>
+         
+        </MudCardHeader>
+        <MudCardContent Class ="pa-0">
+            <MudSimpleTable Elevation="0" Class="pa-0">
+                <thead>
+                <tr>
+                    <th style="width:30%">Total</th>
+                    <th style ="width:30%">Used</th>
+                    <th>Free</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>
+                        @SetupModel.Memory.TotalMemory.ToString("N0") MB
+                    </td>
+                    <td>
+                        @SetupModel.Memory.UsedMemory.ToString("N0") MB
+                    </td>
+                    <td>
+                        @SetupModel.Memory.FreeMemory.ToString("N0") MB
+                    </td>
+                </tr>
+                </tbody>
+            </MudSimpleTable>
+        </MudCardContent>
+    </MudCard>
+
+    <MudCard Elevation="4">
+        <MudCardHeader Class="pb-0 mt-4">
+            <CardHeaderContent >
+                <MudText Typo="Typo.h6">Disk Space</MudText>
+            </CardHeaderContent>
+         
+        </MudCardHeader>
+        <MudCardContent Class ="pa-0">
+            <MudSimpleTable Elevation="0" Class="pa-0">
+                <thead>
+                <tr>
+                    <th style ="width:30%">Total</th>
+                    <th style ="width:30%">Used</th>
+                    <th>Free</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>
+                        @SetupModel.Disk.TotalDiskSpace.ToString("N1") GB
+                    </td>
+                    <td>
+                        @((SetupModel.Disk.TotalDiskSpace -SetupModel.Disk.AvailableDiskSpace).ToString("N1")) GB
+                    </td>
+                    <td>
+                        @SetupModel.Disk.AvailableDiskSpace.ToString("N1") GB
+                    </td>
+                </tr>
+                </tbody>
+            </MudSimpleTable>
+        </MudCardContent>
+    </MudCard>
+    
+    @if (SetupModel.Temperature.CpuTemperature > 0)
+    {
+        <MudCard Elevation="4">
+            <MudCardHeader Class="pb-0 mt-4">
+                <CardHeaderContent >
+                    <MudText Typo="Typo.h6">CPU</MudText>
+                </CardHeaderContent>
+         
+            </MudCardHeader>
+            <MudCardContent Class ="pa-0">
+                <MudSimpleTable Elevation="0" Class="pa-0">
+                    <thead>
+                    <tr>
+                        <th style ="width:30%">Usage</th>
+                        <th style ="width:30%">Temperature</th>
+                        <th>State</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>
+                            @SetupModel.Cpu.CpuUsage.ToString("N1") %
+                        </td>
+                        <td>
+                            @SetupModel.Temperature.CpuTemperature.ToString("N1") &deg;C
+                        </td>
+                        <td>
+                            @(string.IsNullOrEmpty(SetupModel.Temperature.ThrottledState) ? "Normal" : SetupModel.Temperature.ThrottledState)
+                        </td>
+                    </tr>
+                    </tbody>
+                </MudSimpleTable>
+            </MudCardContent>
+        </MudCard>
+    }
+
+    <MudCard Elevation="4">
+        <MudCardHeader Class="mt-4">
+            <CardHeaderContent >
+                <MudText Typo="Typo.h6">@SetupModel.Cpu.OsDescription</MudText>
+                @if (!string.IsNullOrEmpty(SetupModel.Cpu.OsName))
+                {
+                    <br/>
+                    <MudText Typo="Typo.h6">@SetupModel.Cpu.OsName</MudText>
+                }
+                @if (!string.IsNullOrEmpty(SetupModel.Cpu.CpuHardware))
+                {
+                    <br />
+                    <MudText Typo="Typo.h6">@SetupModel.Cpu.CpuHardware</MudText>
+                }
+                @if (!string.IsNullOrEmpty(SetupModel.Cpu.CpuModel))
+                {
+                    <br />
+                    <MudText Typo="Typo.h6">@SetupModel.Cpu.CpuModel</MudText>
+                }
+                @if (!string.IsNullOrEmpty(SetupModel.Cpu.CpuModelName))
+                {
+                    <br />
+                    <MudText Typo="Typo.h6">@SetupModel.Cpu.CpuModelName</MudText>
+                }
+            </CardHeaderContent>
+         
+        </MudCardHeader>
+    </MudCard>
+ 
+</MudPaper>

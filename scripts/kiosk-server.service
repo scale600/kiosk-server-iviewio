@@ -1,0 +1,23 @@
+[Unit]
+Description=Kiosk Server (Blazor Server + MudBlazor)
+After=network.target
+
+[Service]
+Type=notify
+User=kiosk
+Group=kiosk
+WorkingDirectory=/opt/kiosk-server
+# DataProtection key-ring refresh on Linux needs Microsoft.Win32.Registry,
+# which ships in the shared framework but is not auto-referenced. Copy it on
+# every start (version-matched to the installed runtime) so the 90-day
+# key-expiry "blank screen" failure does not recur.
+ExecStartPre=-/bin/bash -c 'cp /usr/share/dotnet/shared/Microsoft.NETCore.App/8.*/Microsoft.Win32.Registry.dll /opt/kiosk-server/'
+ExecStart=/usr/bin/dotnet /opt/kiosk-server/kiosk-server.dll
+Restart=always
+RestartSec=5
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=ASPNETCORE_URLS=http://127.0.0.1:5000
+Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
+
+[Install]
+WantedBy=multi-user.target

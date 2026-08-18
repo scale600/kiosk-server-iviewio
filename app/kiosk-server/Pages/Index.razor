@@ -1,0 +1,46 @@
+﻿@page "/"
+
+<MudPaper Class="pa-4 ma-4 flex-grow-1 flex-shrink-1"  Elevation="10">
+    
+    
+
+    <MudSimpleTable Elevation="4">
+    <thead>
+    <tr>
+        <th>External Urls</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var url in WebServerUrls)
+    {
+        <tr>
+            <td>
+                 <a href="@url">@url</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+    </MudSimpleTable>
+
+    <MudSimpleTable Elevation="4" Class="mt-4">
+        <thead>
+        <tr>
+            <th colspan="2">Kiosk Urls</th>
+        </tr>
+        </thead>
+        <tbody>
+            @foreach (var url in RedirectUrlList)
+            {
+                <tr>
+                    <td>
+                        @url.Name
+                    </td>
+                    <td>
+                        @url.Url
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </MudSimpleTable>
+
+</MudPaper>
