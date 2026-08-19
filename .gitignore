@@ -24,6 +24,7 @@
 .env.*
 !.env.example
 info.txt
+note.txt
 
 # Logs
 *.log
